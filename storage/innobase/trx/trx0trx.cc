@@ -30,6 +30,8 @@ this program; if not, write to the Free Software Foundation, Inc.,
  Created 3/26/1996 Heikki Tuuri
  *******************************************************/
 
+#include "../../../plugin/multi_master_log_plugin/mml_plugin_functions.h"
+
 #include <sys/types.h>
 #include <time.h>
 #include <new>
@@ -1368,6 +1370,11 @@ static void trx_start_low(
   ut_a(trx->error_state == DB_SUCCESS);
 
   MONITOR_INC(MONITOR_TRX_ACTIVE);
+
+  if(mml_plugin_interface_active > 0)
+  {
+    (*mml_plugin_trx_start_ptr)();
+  }
 }
 
 /** Set the transaction serialisation number.
@@ -1961,6 +1968,11 @@ written */
     }
 
     trx->commit_lsn = lsn;
+
+    if(mml_plugin_interface_active > 0)
+    {
+      (*mml_plugin_wr_trx_commit_ptr)(trx->commit_lsn);
+    }
 
     /* Tell server some activity has happened, since the trx
     does changes something. Background utility threads like
